@@ -130,6 +130,39 @@ def api_user_info():
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
 
+def extract_fields_from_html(html):
+    data = {}
+    if not html:
+        return data
+    try:
+        m = re.search(r'जिला :- <b>(.*?)</b>', html)
+        if m: data['District'] = m.group(1).strip()
+        m = re.search(r'अंचल :- <b>(.*?)</b>', html)
+        if m: data['Anchal'] = m.group(1).strip()
+        m = re.search(r'हल्का :- <b>(.*?)</b>', html)
+        if m: data['Halka'] = m.group(1).strip()
+        m = re.search(r'मौजा :- <b>(.*?)</b>', html)
+        if m: data['Mauja'] = m.group(1).strip()
+        m = re.search(r'मौजा/थाना संख्या :- <b>(.*?)</b>', html)
+        if m: data['Thana'] = m.group(1).strip()
+        m = re.search(r'जमाबंदी रेयत का नाम :- <b>(.*?)</b>', html)
+        if m: data['Name'] = m.group(1).strip()
+        m = re.search(r'अभिभावक का नाम :- <b>(.*?)</b>', html)
+        if m: data['Name2'] = m.group(1).strip()
+        m = re.search(r'पता :- <b>(.*?)</b>', html)
+        if m: data['Pata'] = m.group(1).strip()
+        m = re.search(r'जमाबन्दी संख्या :- <b>(.*?)</b>', html)
+        if m: data['JamabandiNo'] = m.group(1).strip()
+        m = re.search(r'भाग वर्तमान :- <b>(.*?)</b>', html)
+        if m: data['BhagVartaman'] = m.group(1).strip()
+        m = re.search(r'पृष्ठ संख्या :- <b>(.*?)</b>', html)
+        if m: data['PrishthSankhya'] = m.group(1).strip()
+        m = re.search(r'तिथि-\s*<b>(.*?)</b>', html)
+        if m: data['Date'] = m.group(1).strip()
+    except Exception as e:
+        pass
+    return data
+
 # Fetch single receipt details for Editing
 @app.route('/api/receipt/get', methods=['GET'])
 def api_receipt_get():
@@ -146,6 +179,15 @@ def api_receipt_get():
                     receipt['form_data'] = json.loads(receipt['form_data'])
                 except:
                     pass
+            
+            extracted = extract_fields_from_html(receipt.get('html_content', ''))
+            if not receipt.get('form_data') or not isinstance(receipt['form_data'], dict):
+                receipt['form_data'] = extracted
+            else:
+                for k, v in extracted.items():
+                    if not receipt['form_data'].get(k) and v:
+                        receipt['form_data'][k] = v
+
             return {"status": "success", "receipt": receipt}
         return {"status": "error", "message": "Receipt not found"}, 404
     except Exception as e:
@@ -206,6 +248,11 @@ def api_receipt_create():
         else:
             html_fetched = raw_html
 
+        # Fix logo image paths so logo ALWAYS loads on live site
+        html_fetched = html_fetched.replace('../img/logo2_new1.png', '/static/download.png')
+        html_fetched = html_fetched.replace('img/logo2_new1.png', '/static/download.png')
+        html_fetched = re.sub(r'src=["\'][^"\']*logo2_new1[^"\']*["\']', 'src="/static/download.png"', html_fetched)
+
         # Optional field replacements in HTML
         new_name = data.get('name', '').strip()
         new_name2 = data.get('name2', '').strip()
@@ -214,21 +261,33 @@ def api_receipt_create():
         new_thana = data.get('thana', '').strip()
 
         if new_name:
+            html_fetched = re.sub(r'(जमाबंदी रेयत का नाम :- <b>).*?(</b>)', f'\\1{new_name}\\2', html_fetched)
             html_fetched = re.sub(r'(id="lblReiyatName"[^>]*>)[^<]*', f'\\1{new_name}', html_fetched)
         if new_name2:
+            html_fetched = re.sub(r'(अभिभावक का नाम :- <b>).*?(</b>)', f'\\1{new_name2}\\2', html_fetched)
             html_fetched = re.sub(r'(id="lblGuardianName"[^>]*>)[^<]*', f'\\1{new_name2}', html_fetched)
         if new_halka:
+            html_fetched = re.sub(r'(हल्का :- <b>).*?(</b>)', f'\\1{new_halka}\\2', html_fetched)
             html_fetched = re.sub(r'(id="lblHalkaName"[^>]*>)[^<]*', f'\\1{new_halka}', html_fetched)
         if new_mauja:
+            html_fetched = re.sub(r'(मौजा :- <b>).*?(</b>)', f'\\1{new_mauja}\\2', html_fetched)
             html_fetched = re.sub(r'(id="lblMaujaName"[^>]*>)[^<]*', f'\\1{new_mauja}', html_fetched)
+        if new_thana:
+            html_fetched = re.sub(r'(मौजा/थाना संख्या :- <b>).*?(</b>)', f'\\1{new_thana}\\2', html_fetched)
 
         html_rendered = html_fetched
+        extracted_fields = extract_fields_from_html(html_rendered)
         formatted_data = {
             "mode": "direct_html",
-            "Name": new_name or "Direct HTML Receipt",
             "old_receipt_url": old_receipt_url,
             "qr_base64": qr_base64
         }
+        formatted_data.update(extracted_fields)
+        if new_name: formatted_data["Name"] = new_name
+        if new_name2: formatted_data["Name2"] = new_name2
+        if new_halka: formatted_data["Halka"] = new_halka
+        if new_mauja: formatted_data["Mauja"] = new_mauja
+        if new_thana: formatted_data["Thana"] = new_thana
     else:
         formatted_data = {
             "mode": "form",
@@ -312,17 +371,45 @@ def api_receipt_update():
             else:
                 html_fetched = raw_html
 
+            # Fix logo image paths so logo ALWAYS loads on live site
+            html_fetched = html_fetched.replace('../img/logo2_new1.png', '/static/download.png')
+            html_fetched = html_fetched.replace('img/logo2_new1.png', '/static/download.png')
+            html_fetched = re.sub(r'src=["\'][^"\']*logo2_new1[^"\']*["\']', 'src="/static/download.png"', html_fetched)
+
             new_name = data.get('name', '').strip()
+            new_name2 = data.get('name2', '').strip()
+            new_halka = data.get('halka', '').strip()
+            new_mauja = data.get('mauja', '').strip()
+            new_thana = data.get('thana', '').strip()
+
             if new_name:
+                html_fetched = re.sub(r'(जमाबंदी रेयत का नाम :- <b>).*?(</b>)', f'\\1{new_name}\\2', html_fetched)
                 html_fetched = re.sub(r'(id="lblReiyatName"[^>]*>)[^<]*', f'\\1{new_name}', html_fetched)
+            if new_name2:
+                html_fetched = re.sub(r'(अभिभावक का नाम :- <b>).*?(</b>)', f'\\1{new_name2}\\2', html_fetched)
+                html_fetched = re.sub(r'(id="lblGuardianName"[^>]*>)[^<]*', f'\\1{new_name2}', html_fetched)
+            if new_halka:
+                html_fetched = re.sub(r'(हल्का :- <b>).*?(</b>)', f'\\1{new_halka}\\2', html_fetched)
+                html_fetched = re.sub(r'(id="lblHalkaName"[^>]*>)[^<]*', f'\\1{new_halka}', html_fetched)
+            if new_mauja:
+                html_fetched = re.sub(r'(मौजा :- <b>).*?(</b>)', f'\\1{new_mauja}\\2', html_fetched)
+                html_fetched = re.sub(r'(id="lblMaujaName"[^>]*>)[^<]*', f'\\1{new_mauja}', html_fetched)
+            if new_thana:
+                html_fetched = re.sub(r'(मौजा/थाना संख्या :- <b>).*?(</b>)', f'\\1{new_thana}\\2', html_fetched)
 
             html_rendered = html_fetched
+            extracted_fields = extract_fields_from_html(html_rendered)
             formatted_data = {
                 "mode": "direct_html",
-                "Name": new_name or "Direct HTML Receipt",
                 "old_receipt_url": old_receipt_url,
                 "qr_base64": qr_base64
             }
+            formatted_data.update(extracted_fields)
+            if new_name: formatted_data["Name"] = new_name
+            if new_name2: formatted_data["Name2"] = new_name2
+            if new_halka: formatted_data["Halka"] = new_halka
+            if new_mauja: formatted_data["Mauja"] = new_mauja
+            if new_thana: formatted_data["Thana"] = new_thana
         else:
             formatted_data = {
                 "mode": "form",
