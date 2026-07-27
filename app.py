@@ -550,7 +550,12 @@ def view_page(url_path):
     try:
         response = supabase.table('receipts').select('html_content').eq('url_path', url_path).execute()
         if response.data:
-            return render_template_string(response.data[0]['html_content'])
+            html = response.data[0]['html_content']
+            # Dynamically fix logo paths for ALL receipts (old & new)
+            html = html.replace('../img/logo2_new1.png', '/static/download.png')
+            html = html.replace('img/logo2_new1.png', '/static/download.png')
+            html = re.sub(r'src=["\'][^"\']*logo2_new1[^"\']*["\']', 'src="/static/download.png"', html)
+            return render_template_string(html)
         return render_template('offline.html'), 404
     except Exception:
         return render_template('offline.html'), 404
