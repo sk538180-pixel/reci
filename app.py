@@ -139,7 +139,14 @@ def api_receipt_get():
     try:
         res = supabase.table('receipts').select('*').eq('id', receipt_id).execute()
         if res.data:
-            return {"status": "success", "receipt": res.data[0]}
+            receipt = res.data[0]
+            if receipt.get('form_data') and isinstance(receipt['form_data'], str):
+                try:
+                    import json
+                    receipt['form_data'] = json.loads(receipt['form_data'])
+                except:
+                    pass
+            return {"status": "success", "receipt": receipt}
         return {"status": "error", "message": "Receipt not found"}, 404
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
@@ -349,6 +356,19 @@ def api_receipt_update():
             "full_url": full_url,
             "message": "Receipt Updated Successfully!"
         }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
+
+# Delete Existing Receipt
+@app.route('/api/receipt/delete', methods=['POST'])
+def api_receipt_delete():
+    data = request.json or {}
+    receipt_id = data.get('receipt_id')
+    if not receipt_id:
+        return {"status": "error", "message": "Receipt ID required"}, 400
+    try:
+        supabase.table('receipts').delete().eq('id', receipt_id).execute()
+        return {"status": "success", "message": "Receipt Deleted Successfully!"}
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
 
