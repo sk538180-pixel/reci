@@ -1,5 +1,5 @@
-Flask
-supabase
-postgrest
-qrcode[pil]
-requests
+Flask==3.0.3
+supabase==2.3.4
+qrcode==7.4.2
+pillow==10.2.0
+requests==2.31.0
