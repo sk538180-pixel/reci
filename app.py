@@ -24,7 +24,7 @@ app.secret_key = 'aakash_super_secret_key'
 
 # Supabase Setup (Tumhara original)
 SUPABASE_URL = "https://qtzmgxvjibivdgodcfwz.supabase.co"
-SUPABASE_KEY = "sb_publishable_mLPBhmg1wc15tJOzbRd6Qg_nu30nfMC"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0em1neHZqaWJpdmRnb2RjZnd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTYyMzYsImV4cCI6MjA5MzAzMjIzNn0.o9US11mFFINPL80qO8x-5ns3sZgnoMlrYEt1v_-jXD8"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def get_json_diff(old_json_str, new_json_str):
