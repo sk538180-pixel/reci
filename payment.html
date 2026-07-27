@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laggan Raseed Dashboard</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .btn-submit { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 15px; }
+        .receipt-list { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
+        .item { background: #f9f9f9; padding: 10px; border-bottom: 1px solid #ddd; margin-bottom: 10px; display: flex; flex-direction: column; word-break: break-word; }
+        .actions { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+        .actions a { text-decoration: none; padding: 6px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; text-align: center; white-space: nowrap; }
+        .btn-edit-data { background: #007bff; color: white; }
+        .btn-edit-html { background: #ffc107; color: black; }
+        .btn-delete { background: #dc3545; color: white; }
+
+        /* Header Bar */
+        .header-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #e9ecef;
+            border-radius: 8px;
+        }
+        .header-info { }
+        .header-info strong { font-size: 14px; word-break: break-all; }
+        .header-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .header-btn {
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 12px;
+            text-decoration: none;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .btn-wallet { background: #17a2b8; color: white; }
+        .btn-add-money { background: #28a745; color: white; }
+        .btn-logout { background: #dc3545; color: white; }
+
+        /* Admin Pending Payment Card */
+        .payment-card {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+        }
+        .payment-card-inner {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .payment-card-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .payment-card-actions form { flex: 1; }
+        .payment-card-actions button { width: 100%; }
+
+        /* Admin User Card */
+        .user-card-header {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .user-card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        /* Edit History */
+        .history-header {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .history-header .history-link { color: #007bff; word-break: break-all; }
+        .history-header .history-date { color: #666; font-size: 12px; }
+
+        /* Modal Popup Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .modal-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 92%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: relative;
+            animation: slideUp 0.2s ease-out;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .modal-title {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+        .modal-close {
+            background: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .modal-close:hover {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+        .modal-body {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        @keyframes fadeIn {
+            from { background: rgba(0, 0, 0, 0); }
+            to { background: rgba(0, 0, 0, 0.5); }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Desktop tweaks */
+        @media (min-width: 481px) {
+            body { padding: 20px; }
+            .container { padding: 25px; }
+            .header-bar { flex-direction: row; justify-content: space-between; align-items: center; }
+            .header-btn { flex: 0 0 auto; }
+            .payment-card-inner { flex-direction: row; justify-content: space-between; align-items: center; }
+            .history-header { flex-direction: row; justify-content: space-between; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header-bar">
+        <div class="header-info">
+            <strong>{{ email }}</strong><br>
+            {% if is_admin %}
+            <span style="font-size: 13px; color: #dc3545; font-weight: bold;">Legacy Admin Mode</span>
+            {% else %}
+            <span style="font-size: 13px; color: #555;">Wallet: <strong>₹{{ wallet_balance }}</strong></span>
+            {% endif %}
+        </div>
+        <div class="header-buttons">
+            {% if not is_admin %}
+            <button onclick="showWalletModal()" class="header-btn btn-wallet">Wallet History</button>
+            <a href="/add_money" class="header-btn btn-add-money">+ Add Money</a>
+            {% endif %}
+            <a href="/logout" onclick="localStorage.clear();" class="header-btn btn-logout">Logout</a>
+        </div>
+    </div>
+    
+    {% if payment_msg %}
+    <div style="padding: 15px; background: #d4edda; color: #155724; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center;">
+        {{ payment_msg }}
+    </div>
+    {% endif %}
+    
+    {% if is_admin %}
+    {% if pending_payments %}
+    <div style="margin-bottom: 30px; background: #fff3cd; padding: 12px; border-radius: 8px; border: 1px solid #ffeeba;">
+        <h3 style="margin-top: 0; color: #856404; font-size: 16px;">Pending Payments (Require Approval)</h3>
+        {% for p in pending_payments %}
+        <div class="payment-card">
+            <div class="payment-card-inner">
+                <div style="font-size: 13px;">
+                    <strong>User:</strong> {{ p.users.email }} <br>
+                    <strong>Amount:</strong> ₹{{ p.amount }} <br>
+                    <strong>UTR:</strong> {{ p.utr_number }} <br>
+                    <small style="color: #666;">{{ p.created_at[:10] }}</small>
+                </div>
+                <div class="payment-card-actions">
+                    <form action="/admin/approve_payment/{{ p.id }}" method="POST">
+                        <button type="submit" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">Approve</button>
+                    </form>
+                    <form action="/admin/reject_payment/{{ p.id }}" method="POST">
+                        <button type="submit" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer;" onclick="return confirm('Pakka reject karna hai?');">Reject</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <h2>Nayi Raseed Banayein</h2>
+    <div style="margin-bottom: 20px; background: #e9ecef; padding: 10px; border-radius: 8px; text-align: center;">
+        <label style="margin-right: 20px; font-weight: bold; cursor: pointer;">
+            <input type="radio" name="form_type" value="data" checked onclick="toggleForms()"> Form Data Se
+        </label>
+        <label style="font-weight: bold; cursor: pointer;">
+            <input type="radio" name="form_type" value="html" onclick="toggleForms()"> Direct HTML Se
+        </label>
+    </div>
+
+    <!-- DATA FORM -->
+    <div id="form-data-section">
+        <form action="/create" method="POST">
+        <label>Custom Link:</label>
+        <input type="text" name="custom_url" value="citizen/payment_receipt.aspxd=hfhfhf5755gj535424fydseukkcg5655iudvjhgh55628igyd" required>
+
+        <input type="text" name="district" placeholder="District" required>
+        <input type="text" name="anchal" placeholder="Anchal" required>
+        <input type="text" name="halka" placeholder="Halka" required>
+        <input type="text" name="mauja" placeholder="Mauja" required>
+        <input type="text" name="name" placeholder="Reiyat ka Naam" required>
+        <input type="text" name="name2" placeholder="Pita/Pati ka Naam" required>
+        <input type="text" name="pata" placeholder="Pata" required>
+        <input type="text" name="thana" placeholder="Thana No." required>
+        <input type="text" name="khata" placeholder="Khata No." required>
+        <input type="text" name="khesra" placeholder="Khesra No." required>
+        <input type="text" name="jamabandi_no" placeholder="जमाबन्दी संख्या" required>
+        <input type="text" name="bhag_vartaman" placeholder="भाग वर्तमान" required>
+        <input type="text" name="prishth_sankhya" placeholder="पृष्ठ संख्या" required>
+
+        <div style="background: #e9ecef; padding: 15px; border-radius: 8px; margin: 10px 0;">
+            <p style="margin: 0 0 5px 0; font-weight: bold; font-size: 14px;">Date Select Karein (Calendar Se):</p>
+            <input type="date" name="date" required>
+        </div>
+
+        <button type="submit" class="btn-submit">Generate Raseed</button>
+        </form>
+    </div>
+
+    <!-- HTML FORM -->
+    <div id="form-html-section" style="display: none;">
+        <form action="/create_from_html" method="POST">
+            <label>Custom Link:</label>
+            <input type="text" name="custom_url" value="citizen/payment_receipt.aspxd=hfhfhf5755gj535424fydseukkcg5655ghbdfgfdbdxfgdfhfbsdghdsdtryfhfgbgsfrwekioiuhjfgsdfetrgiudvjhgh55628igyd" required>
+            
+            <label>जमाबंदी रेयत का नाम (Optional - HTML में बदलने के लिए):</label>
+            <input type="text" name="jamabandi_name" placeholder="नया नाम डालें (अगर बदलना हो)...">
+            
+            <label>अभिभावक का नाम (Optional - HTML में बदलने के लिए):</label>
+            <input type="text" name="guardian_name" placeholder="नया नाम डालें (अगर बदलना हो)...">
+
+            <label>हल्का (Optional - HTML में बदलने के लिए):</label>
+            <input type="text" name="halka_name" placeholder="नया हल्का डालें (अगर बदलना हो)...">
+
+            <label>मौजा (Optional - HTML में बदलने के लिए):</label>
+            <input type="text" name="mauja_name" placeholder="नया मौजा डालें (अगर बदलना हो)...">
+
+            <label>मौजा/थाना संख्या (Optional - HTML में बदलने के लिए):</label>
+            <input type="text" name="mauja_thana_name" placeholder="नया मौजा/थाना संख्या डालें (अगर बदलना हो)...">
+
+            <label>Purani Raseed Ka Link (Public URL):</label>
+            <input type="url" name="source_url" placeholder="Yahan purani raseed ka link paste karein..." required style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
+            
+            <button type="submit" class="btn-submit" style="background: #007bff;">HTML Se Raseed Banayein</button>
+        </form>
+    </div>
+
+    <div class="receipt-list">
+        {% if is_admin %}
+            <h2>User-wise Receipts Classification 📂</h2>
+            
+            <!-- Legacy Admin Receipts -->
+            <div class="user-section" style="margin-bottom: 20px; background: #e9ecef; padding: 15px; border-radius: 8px;">
+                <h3 style="margin: 0 0 10px 0; color: #495057; cursor: pointer;" onclick="toggleUserReceipts('legacy')">
+                     Legacy Admin Receipts ({{ pages|length }}) <span style="float: right;">▼</span>
+                </h3>
+                <div id="receipts-legacy" style="display: none; margin-top: 10px;">
+                    {% for id, url, name in pages %}
+                    <div class="item" style="background: white; padding: 12px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #ddd;">
+                        <a href="/{{ url }}" target="_blank" style="color: #007bff; font-weight: bold; text-decoration: none;">{{ name }}</a>
+                        <div style="font-size: 12px; color: #555; margin-top: 4px;">Link: <code>/{{ url[:30] }}...</code></div>
+                        <div class="actions">
+                            <a href="/edit_data/{{ id }}" class="btn-edit-data">Edit Form Data</a>
+                            <a href="/edit/{{ id }}" class="btn-edit-html">Edit HTML Code</a>
+                            <a href="/delete/{{ id }}" class="btn-delete" onclick="return confirm('Pakka delete karna hai?')">Delete</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Users Expandable Cards -->
+            {% for u in users %}
+            {% set u_id = u.id %}
+            {% set u_receipts = grouped_receipts.get(u_id, []) %}
+            <div class="user-section" style="margin-bottom: 15px; background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <div style="cursor: pointer;" onclick="toggleUserReceipts('{{ u_id }}')">
+                    <div class="user-card-header">
+                        <strong style="font-size: 14px; word-break: break-all;">{{ u.email }}</strong>
+                        <div class="user-card-meta">
+                            <span style="color: #28a745;">Wallet: ₹{{ u.wallet_balance }}</span>
+                            <span style="color: #666;">({{ u_receipts|length }} Receipts)</span>
+                            <span>▼</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="receipts-{{ u_id }}" style="display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+                    
+                    <!-- User Wallet history collapsible -->
+                    <div style="margin-bottom: 15px; background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #e9ecef;">
+                        <h4 style="margin: 0 0 5px 0; color: #495057; font-size: 13px; cursor: pointer;" onclick="toggleUserWallet('{{ u_id }}')">
+                            Wallet Transaction History 💳 <span id="wallet-arrow-{{ u_id }}" style="float: right;">▼</span>
+                        </h4>
+                        <div id="wallet-{{ u_id }}" style="display: none; max-height: 150px; overflow-y: auto; font-size: 12px; margin-top: 8px;">
+                            {% set u_txs = wallet_txs.get(u_id, []) %}
+                            {% for tx in u_txs %}
+                            <div style="padding: 6px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>{{ tx.description }}</strong><br>
+                                    <small style="color: #888;">{{ tx.created_at.replace('T', ' ')[:16] }}</small>
+                                </div>
+                                <span style="font-weight: bold; color: {% if tx.transaction_type == 'Credit' %}#28a745{% else %}#dc3545{% endif %};">
+                                    {% if tx.transaction_type == 'Credit' %}+{% endif %}{{ tx.amount }}
+                                </span>
+                            </div>
+                            {% else %}
+                            <div style="color: #999; font-style: italic;">No wallet transactions logged.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <h4 style="margin: 0 0 10px 0; color: #495057; font-size: 13px; font-weight: bold;">User's Receipts:</h4>
+                    {% for id, url, name in u_receipts %}
+                    <div class="item" style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #eee;">
+                        <a href="/{{ url }}" target="_blank" style="color: #007bff; font-weight: bold; text-decoration: none;">{{ name }}</a>
+                        <div style="font-size: 12px; color: #555; margin-top: 4px;">Link: <code>/{{ url[:30] }}...</code></div>
+                        <div class="actions">
+                            <a href="/edit_data/{{ id }}" class="btn-edit-data">Edit Form Data</a>
+                            <a href="/edit/{{ id }}" class="btn-edit-html">Edit HTML Code</a>
+                            <a href="/delete/{{ id }}" class="btn-delete" onclick="return confirm('Pakka delete karna hai?')">Delete</a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div style="color: #888; font-style: italic; padding: 10px 0;">No receipts generated by this user.</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Recent Edit History TimeLine -->
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd;">
+                <h2>Receipt Edit History Logs 📜</h2>
+                <div style="background: white; border-radius: 8px; border: 1px solid #ddd; padding: 15px; max-height: 450px; overflow-y: auto;">
+                    {% for log in recent_history %}
+                    <div style="padding: 12px; border-bottom: 1px solid #eee; margin-bottom: 10px;">
+                        <div class="history-header">
+                            <span class="history-link">Link: {{ log.url[:40] }}...</span>
+                            <span class="history-date">{{ log.edited_at.replace('T', ' ')[:19] }}</span>
+                        </div>
+                        <div style="font-size: 13px; color: #555; padding-left: 10px; border-left: 2px solid #6c757d;">
+                            {% for change in log.changes %}
+                            <div style="margin-bottom: 2px;">• {{ change }}</div>
+                            {% else %}
+                            <div style="color: #888; font-style: italic;">No specific fields changed (probably raw HTML/URL update).</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div style="color: #888; font-style: italic; text-align: center; padding: 20px 0;">No edit logs found yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <script>
+                function toggleUserReceipts(userId) {
+                    var el = document.getElementById('receipts-' + userId);
+                    if (el.style.display === 'none') {
+                        el.style.display = 'block';
+                    } else {
+                        el.style.display = 'none';
+                    }
+                }
+                function toggleUserWallet(userId) {
+                    var el = document.getElementById('wallet-' + userId);
+                    var arr = document.getElementById('wallet-arrow-' + userId);
+                    if (el.style.display === 'none') {
+                        el.style.display = 'block';
+                        arr.innerText = '▲';
+                    } else {
+                        el.style.display = 'none';
+                        arr.innerText = '▼';
+                    }
+                }
+            </script>
+
+        {% else %}
+            <!-- Normal User View -->
+            <h3>Purani Raseedein</h3>
+            {% for id, url, name in pages %}
+            <div class="item">
+                <a href="/{{ url }}" target="_blank" style="color: #333; font-weight: bold; margin-bottom: 5px;">{{ name }}</a>
+                <div class="actions">
+                    <a href="/edit_data/{{ id }}" class="btn-edit-data">Edit Form Data</a>
+                    <a href="/edit/{{ id }}" class="btn-edit-html">Edit HTML Code</a>
+                    <a href="/delete/{{ id }}" class="btn-delete" onclick="return confirm('Pakka delete karna hai?')">Delete</a>
+                </div>
+            </div>
+            {% endfor %}
+
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Popup for Wallet History -->
+{% if not is_admin %}
+<div id="wallet-modal" class="modal-overlay" onclick="closeWalletModalOutside(event)">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="modal-title">Wallet Transaction History 💳</h3>
+            <button class="modal-close" onclick="closeWalletModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; max-height: 250px; overflow-y: auto;">
+                {% for tx in wallet_txs %}
+                <div style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>{{ tx.description }}</strong><br>
+                        <small style="color: #666;">{{ tx.created_at.replace('T', ' ')[:16] }}</small>
+                    </div>
+                    <span style="font-weight: bold; font-size: 14px; color: {% if tx.transaction_type == 'Credit' %}#28a745{% else %}#dc3545{% endif %};">
+                        {% if tx.transaction_type == 'Credit' %}+{% endif %}{{ tx.amount }}
+                    </span>
+                </div>
+                {% else %}
+                <div style="color: #888; font-style: italic; text-align: center; padding: 10px 0;">No transaction records found.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    function toggleForms() {
+        var formType = document.querySelector('input[name="form_type"]:checked').value;
+        if (formType === 'data') {
+            document.getElementById('form-data-section').style.display = 'block';
+            document.getElementById('form-html-section').style.display = 'none';
+        } else {
+            document.getElementById('form-data-section').style.display = 'none';
+            document.getElementById('form-html-section').style.display = 'block';
+        }
+    }
+    
+    function showWalletModal() {
+        var modal = document.getElementById('wallet-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+    
+    function closeWalletModal() {
+        var modal = document.getElementById('wallet-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+    
+    function closeWalletModalOutside(event) {
+        var modal = document.getElementById('wallet-modal');
+        if (event.target === modal) {
+            closeWalletModal();
+        }
+    }
+</script>
+</body>
+</html>
