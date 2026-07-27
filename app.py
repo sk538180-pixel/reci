@@ -221,8 +221,8 @@ def api_receipt_create():
         random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=16))
         custom_url = f"citizen/payment_receipt.aspxd=hfhfhf5755gj535424fydscukkcg{random_suffix}"
 
-    host_url = request.host_url.rstrip('/')
-    full_url = f"{host_url}/{custom_url}"
+    host_url = "https://www.bhulaganbihargov.com"
+    full_url = f"{host_url}/{custom_url.lstrip('/')}"
     
     # Generate Base64 QR Code
     qr = qrcode.QRCode(version=1, box_size=8, border=2)
@@ -252,6 +252,12 @@ def api_receipt_create():
         html_fetched = html_fetched.replace('../img/logo2_new1.png', '/static/download.png')
         html_fetched = html_fetched.replace('img/logo2_new1.png', '/static/download.png')
         html_fetched = re.sub(r'src=["\'][^"\']*logo2_new1[^"\']*["\']', 'src="/static/download.png"', html_fetched)
+
+        # Replace OLD QR Code with NEW QR Code for this receipt's URL!
+        new_qr_tag = f'<img src="data:image/png;base64,{qr_base64}" alt="QR Code" style="width: 120px" />'
+        qr_pattern = re.compile(r'<img[^>]+(?:src="[^"]*barcode[^"]*"|src="data:image/[^;]+;base64,[^"]+"|alt="QR Code"|style="width:\s*12[05]px")[^>]*>', re.IGNORECASE)
+        if qr_pattern.search(html_fetched):
+            html_fetched = qr_pattern.sub(new_qr_tag, html_fetched, count=1)
 
         # Optional field replacements in HTML
         new_name = data.get('name', '').strip()
@@ -344,8 +350,8 @@ def api_receipt_update():
             
         existing_receipt = res.data[0]
         custom_url = existing_receipt['url_path']
-        host_url = request.host_url.rstrip('/')
-        full_url = f"{host_url}/{custom_url}"
+        host_url = "https://www.bhulaganbihargov.com"
+        full_url = f"{host_url}/{custom_url.lstrip('/')}"
 
         # Generate Base64 QR Code
         qr = qrcode.QRCode(version=1, box_size=8, border=2)
@@ -375,6 +381,12 @@ def api_receipt_update():
             html_fetched = html_fetched.replace('../img/logo2_new1.png', '/static/download.png')
             html_fetched = html_fetched.replace('img/logo2_new1.png', '/static/download.png')
             html_fetched = re.sub(r'src=["\'][^"\']*logo2_new1[^"\']*["\']', 'src="/static/download.png"', html_fetched)
+
+            # Replace OLD QR Code with NEW QR Code for this receipt's URL!
+            new_qr_tag = f'<img src="data:image/png;base64,{qr_base64}" alt="QR Code" style="width: 120px" />'
+            qr_pattern = re.compile(r'<img[^>]+(?:src="[^"]*barcode[^"]*"|src="data:image/[^;]+;base64,[^"]+"|alt="QR Code"|style="width:\s*12[05]px")[^>]*>', re.IGNORECASE)
+            if qr_pattern.search(html_fetched):
+                html_fetched = qr_pattern.sub(new_qr_tag, html_fetched, count=1)
 
             new_name = data.get('name', '').strip()
             new_name2 = data.get('name2', '').strip()
