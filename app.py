@@ -15,7 +15,7 @@ app.secret_key = 'recipt_secure_app_secret_key'
 
 # Supabase Credentials
 SUPABASE_URL = "https://qtzmgxvjibivdgodcfwz.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0em1neHZqaWJpdmRnb2RjZnd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTYyMzYsImV4cCI6MjA5MzAzMjIzNn0.o9US11mFFINPL80qO8x-5ns3sZgnoMlrYEt1v_-jXD8"
+SUPABASE_KEY = "sb_secret_CL4H1jatcai_UsLk6S7vYQ_MWcY6_-V"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def get_or_create_valid_user_id(user_id):
