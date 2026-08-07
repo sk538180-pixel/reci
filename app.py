@@ -15,7 +15,8 @@ app.secret_key = 'recipt_secure_app_secret_key'
 
 # Supabase Credentials
 SUPABASE_URL = "https://qtzmgxvjibivdgodcfwz.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0em1neHZqaWJpdmRnb2RjZnd6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzQ1NjIzNiwiZXhwIjoyMDkzMDMyMjM2fQ.gc7Tk9pC21fkm-TZ8UKEuVXUb1jAOEQfFKQvmNLij2A"supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0em1neHZqaWJpdmRnb2RjZnd6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzQ1NjIzNiwiZXhwIjoyMDkzMDMyMjM2fQ.gc7Tk9pC21fkm-TZ8UKEuVXUb1jAOEQfFKQvmNLij2A"
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def get_or_create_valid_user_id(user_id):
     if user_id and user_id != -1:
@@ -264,6 +265,9 @@ def api_receipt_create():
         new_halka = data.get('halka', '').strip()
         new_mauja = data.get('mauja', '').strip()
         new_thana = data.get('thana', '').strip()
+        new_khata = data.get('khata', '').strip()
+        new_khesra = data.get('khesra', '').strip()
+        new_jamabandi = data.get('jamabandi_no', '').strip()
 
         if new_name:
             html_fetched = re.sub(r'(जमाबंदी रेयत का नाम :- <b>).*?(</b>)', f'\\1{new_name}\\2', html_fetched)
@@ -279,6 +283,17 @@ def api_receipt_create():
             html_fetched = re.sub(r'(id="lblMaujaName"[^>]*>)[^<]*', f'\\1{new_mauja}', html_fetched)
         if new_thana:
             html_fetched = re.sub(r'(मौजा/थाना संख्या :- <b>).*?(</b>)', f'\\1{new_thana}\\2', html_fetched)
+
+        if new_khata:
+            html_fetched = re.sub(r'(खाता संख्या\s*</td>\s*<td[^>]*>\s*<p[^>]*>).*?(</p>)', f'\1 {new_khata}\2', html_fetched, flags=re.DOTALL | re.IGNORECASE)
+            html_fetched = re.sub(r'(खाता संख्या\s*[:\-]\s*<b>).*?(</b>)', f'\1{new_khata}\2', html_fetched, flags=re.DOTALL | re.IGNORECASE)
+        if new_khesra:
+            html_fetched = re.sub(r'(खेसरा संख्या\s*</td>\s*<td[^>]*>\s*<p[^>]*>).*?(</p>)', f'\1 {new_khesra}\2', html_fetched, flags=re.DOTALL | re.IGNORECASE)
+            html_fetched = re.sub(r'(खेसरा संख्या\s*[:\-]\s*<b>).*?(</b>)', f'\1{new_khesra}\2', html_fetched, flags=re.DOTALL | re.IGNORECASE)
+        if new_jamabandi:
+            html_fetched = re.sub(r'(जमाबन्दी संख्या\s*[:\-]\s*<b>).*?(</b>)', f'\1{new_jamabandi}\2', html_fetched, flags=re.DOTALL | re.IGNORECASE)
+            html_fetched = re.sub(r'(id="lblJamabandiNo"[^>]*>)[^<]*', f'\1{new_jamabandi}', html_fetched)
+
 
         html_rendered = html_fetched
         extracted_fields = extract_fields_from_html(html_rendered)
@@ -392,6 +407,9 @@ def api_receipt_update():
             new_halka = data.get('halka', '').strip()
             new_mauja = data.get('mauja', '').strip()
             new_thana = data.get('thana', '').strip()
+        new_khata = data.get('khata', '').strip()
+        new_khesra = data.get('khesra', '').strip()
+        new_jamabandi = data.get('jamabandi_no', '').strip()
 
             if new_name:
                 html_fetched = re.sub(r'(जमाबंदी रेयत का नाम :- <b>).*?(</b>)', f'\\1{new_name}\\2', html_fetched)
@@ -407,6 +425,17 @@ def api_receipt_update():
                 html_fetched = re.sub(r'(id="lblMaujaName"[^>]*>)[^<]*', f'\\1{new_mauja}', html_fetched)
             if new_thana:
                 html_fetched = re.sub(r'(मौजा/थाना संख्या :- <b>).*?(</b>)', f'\\1{new_thana}\\2', html_fetched)
+
+        if new_khata:
+            html_fetched = re.sub(r'(खाता संख्या\s*</td>\s*<td[^>]*>\s*<p[^>]*>).*?(</p>)', f'\1 {new_khata}\2', html_fetched, flags=re.DOTALL | re.IGNORECASE)
+            html_fetched = re.sub(r'(खाता संख्या\s*[:\-]\s*<b>).*?(</b>)', f'\1{new_khata}\2', html_fetched, flags=re.DOTALL | re.IGNORECASE)
+        if new_khesra:
+            html_fetched = re.sub(r'(खेसरा संख्या\s*</td>\s*<td[^>]*>\s*<p[^>]*>).*?(</p>)', f'\1 {new_khesra}\2', html_fetched, flags=re.DOTALL | re.IGNORECASE)
+            html_fetched = re.sub(r'(खेसरा संख्या\s*[:\-]\s*<b>).*?(</b>)', f'\1{new_khesra}\2', html_fetched, flags=re.DOTALL | re.IGNORECASE)
+        if new_jamabandi:
+            html_fetched = re.sub(r'(जमाबन्दी संख्या\s*[:\-]\s*<b>).*?(</b>)', f'\1{new_jamabandi}\2', html_fetched, flags=re.DOTALL | re.IGNORECASE)
+            html_fetched = re.sub(r'(id="lblJamabandiNo"[^>]*>)[^<]*', f'\1{new_jamabandi}', html_fetched)
+
 
             html_rendered = html_fetched
             extracted_fields = extract_fields_from_html(html_rendered)
